@@ -13,12 +13,9 @@ typedef struct stCustomer
 {
     int iNo;
     long lAmt;
-    pthread_mutex_t mtx;
 } CUSTOMER;
 CUSTOMER arrPerson[100];
 
-long g_lSum=0;
-long g_lThreadSum=0;
 
 /* get the random number*/
 int GetRandom(int iBeg, int iEnd)
@@ -39,7 +36,6 @@ int InitAll()
         memset(&arrPerson[iIndex],0x00,sizeof(arrPerson[iIndex]));
         arrPerson[iIndex].iNo = iIndex;
         arrPerson[iIndex].lAmt = 1000;
-        pthread_mutex_init(&arrPerson[iIndex].mtx,NULL);
     }
     return 0;
 }
@@ -68,45 +64,31 @@ void* thread_trade()
     while(iFlag)
     {
         /*printf("线程[%u]start trade\n",(unsigned int)pthread_self());*/
-        /* lock two accouts first*/
-        if( (iAcct1 = GetRandom(0,100)) && 0==pthread_mutex_trylock(&arrPerson[iAcct1].mtx))
-        {
-            /*lTradeAmt = GetRandom(1,1000)*(time(NULL)%2==1?1:-1);*/
+        iAcct1=GetRandom(0,100);
             lTradeAmt = GetRandom(1,1000);
-            /*account 1 subtracting numbers*/
             if(arrPerson[iAcct1].lAmt<lTradeAmt)
             {
-                /*unlock two accounts*/
-                /*  printf("[%d]当前[%ld][%ld]has not enough money!\n",iAcct1,arrPerson[iAcct1].lAmt,lTradeAmt);*/
                 printf("%u account[%d] current[%ld] sub amt[%ld] is has not enough money,and loop again\n",(unsigned int)pthread_self(),iAcct1,arrPerson[iAcct1].lAmt,lTradeAmt);
-                pthread_mutex_unlock(&arrPerson[iAcct1].mtx);
                 continue;
             }
-            if((iAcct2=GetRandom(0,100)) && 0==pthread_mutex_trylock(&arrPerson[iAcct2].mtx) && iAcct2!=iAcct1)
+            lTemp1 = arrPerson[iAcct1].lAmt; 
+            arrPerson[iAcct1].lAmt -= lTradeAmt;
+            sleep(GetRandom(1,5));
+            if((iAcct2=GetRandom(0,100)) && iAcct2!=iAcct1)
             {
-                lTemp1 = arrPerson[iAcct1].lAmt; 
-                arrPerson[iAcct1].lAmt -= lTradeAmt;
-                g_lSum -= lTradeAmt;
-
                 lTemp2 = arrPerson[iAcct2].lAmt; 
                 arrPerson[iAcct2].lAmt += lTradeAmt;
-                g_lSum += lTradeAmt;
-                /* printf("thread[%u]account[%d]current[%ld]trade amt[%ld]left[%ld]\n",pthread_self(),iAcct1,lTemp,lTradeAmt,arrPerson[iAcct1].lAmt);*/
                 printf("account[%d]current[%ld]sub amt[%ld]left[%ld]\naccount[%d]current[%ld]add amt[%ld] left[%ld]\n",iAcct1,lTemp1,lTradeAmt,arrPerson[iAcct1].lAmt,iAcct2,lTemp2,lTradeAmt,arrPerson[iAcct2].lAmt);
                
-                sleep(GetRandom(1,10));
+                sleep(GetRandom(1,2));
                 printf("bank have [%ld]\n",TotalMoney());
-                pthread_mutex_unlock(&arrPerson[iAcct1].mtx);
-                pthread_mutex_unlock(&arrPerson[iAcct2].mtx);
             }
             else
             {
-                pthread_mutex_unlock(&arrPerson[iAcct1].mtx);
-                pthread_mutex_unlock(&arrPerson[iAcct2].mtx);
+                continue;
             }
         }
-    }
-    printf("thread [%u] exit! bank have [%ld] now!\n", (unsigned int)pthread_self(),TotalMoney());
+    printf("thread [%u] exit!",(unsigned int)pthread_self());
     pthread_exit(NULL);
 }
 
@@ -121,7 +103,6 @@ int main()
     int iCnt = 0;
     pthread_t td[100];
     InitAll();
-    g_lSum = 1000;
     /* creat 100 threads */
     iFlag =1;
     signal(SIGINT,Stop);

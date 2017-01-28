@@ -8,7 +8,7 @@
 
 static unsigned int iFlag=0;
 static unsigned long iSed=0;
-/* 账户结构体 */
+/* the structure of accounts */
 typedef struct stCustomer
 {
     int iNo;
@@ -19,7 +19,7 @@ CUSTOMER arrPerson[100];
 
 long g_lSum=0;
 
-/* 随机数生成器 */
+/* get the random number */
 int GetRandom(int iBeg, int iEnd)
 {
     iSed++;
@@ -28,7 +28,7 @@ int GetRandom(int iBeg, int iEnd)
     return (rand()%(iEnd-iBeg))+iBeg;
 }
 
-/* 初始化100个账户 */
+/* initialize 100 accounts */
 int InitAll()
 {
     int iSum = sizeof(arrPerson)/sizeof(arrPerson[0]);
@@ -68,7 +68,7 @@ long TotalMoney()
     return lSum;
 }
 
-/* 线程调用的事件处理 */
+
 void* thread_trade()
 {
     int iAcct1, iAcct2;
@@ -76,19 +76,19 @@ void* thread_trade()
     long lTemp1 = 0;
     long lTemp2 = 0;
 
-    /* 循环的交易 */
+    /* the circular trade */
     while(iFlag)
     {
-        /*printf("线程[%u]发起交易\n",(unsigned int)pthread_self());*/
-        /* 先锁住两个账户对象 */
+        /*printf("线程[%u]start the trade\n",(unsigned int)pthread_self());*/
+        /* lock two accounts first */
         if( (iAcct1 = GetRandom(0,100)) && 0==pthread_mutex_trylock(&arrPerson[iAcct1].mtx))
         {
             /*lTradeAmt = GetRandom(1,1000)*(time(NULL)%2==1?1:-1);*/
             lTradeAmt = GetRandom(1,2000);
-            /*账户1扣钱*/
+            /*account 1 subtracting numbers*/
             if(arrPerson[iAcct1].lAmt<lTradeAmt)
             {
-                /* 解锁两个账户对象 */
+                /* unlock two accounts */
                 /*  printf("[%d]当前[%ld][%ld]has not enough money!\n",iAcct1,arrPerson[iAcct1].lAmt,lTradeAmt);*/
                 printf("%u account[%d] current[%ld] sub amt[%ld] is has not enough money,and loop again\n",(unsigned int)pthread_self(),iAcct1,arrPerson[iAcct1].lAmt,lTradeAmt);
                 pthread_mutex_unlock(&arrPerson[iAcct1].mtx);
@@ -105,7 +105,7 @@ void* thread_trade()
                 g_lSum += lTradeAmt;
                 /* printf("thread[%u]account[%d]current[%ld]trade amt[%ld]left[%ld]\n",pthread_self(),iAcct1,lTemp,lTradeAmt,arrPerson[iAcct1].lAmt);*/
                 printf("account[%d]current[%ld]sub amt[%ld]left[%ld]\naccount[%d]current[%ld]add amt[%ld] left[%ld]\n",iAcct1,lTemp1,lTradeAmt,arrPerson[iAcct1].lAmt,iAcct2,lTemp2,lTradeAmt,arrPerson[iAcct2].lAmt);
-                /* 1,000 微秒 = 1毫秒  1,000,000 微秒 = 1秒 */
+                
                 sleep(GetRandom(1,10));
                 printf("bank have [%ld]\n",TotalMoney());
                 pthread_mutex_unlock(&arrPerson[iAcct1].mtx);
@@ -134,7 +134,7 @@ int main()
     pthread_t td[100];
     InitAll();
     g_lSum = 1000;
-    /* 循环创建100个线程 */
+    /* create 100 threads */
     iFlag =1;
     signal(SIGINT,Stop);
     for (iCnt=0; iCnt<10; iCnt++)
