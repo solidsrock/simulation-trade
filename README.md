@@ -14,13 +14,13 @@ account # j.Every transfer loops for ever, unless you press Ctrl-C to stop the w
 
 The random money transferred each time should be between 0 – 1000.
 In each transfer, if the account has not enough money left, use printf() to output a message:
-# i has not enough money, and loop again.
+ i has not enough money, and loop again.
 
 In each transfer, after account # i subtracts the transferred money, use printf() to output the
-message: # i transfers how much amount, how much left now.
+message:  i transfers how much amount, how much left now.
 
 In each transfer, after account # j adds the transferred money, use printf() to output the
-message: #j receives how much money, how much left now.
+message: j receives how much money, how much left now.
 
 After each transfer, use a function TotalMoney() to sum up all accounts to get the total
 money in the bank. Then use printf() to output the message: Current total money in bank is how
